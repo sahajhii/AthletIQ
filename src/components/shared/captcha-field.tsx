@@ -4,26 +4,26 @@ import { env } from "@/config/env";
 
 declare global {
   interface Window {
-    turnstile?: {
+    grecaptcha?: {
       render: (
         container: string | HTMLElement,
-        options: {
+        parameters: {
           sitekey: string;
-          theme?: "light" | "dark" | "auto";
+          theme?: "light" | "dark";
           callback?: (token: string) => void;
           "expired-callback"?: () => void;
           "error-callback"?: () => void;
         },
-      ) => string;
-      remove: (widgetId: string) => void;
-      reset: (widgetId: string) => void;
+      ) => number;
+      reset: (widgetId?: number) => void;
+      ready: (callback: () => void) => void;
     };
   }
 }
 
-const SCRIPT_ID = "cloudflare-turnstile-script";
+const SCRIPT_ID = "google-recaptcha-script";
 
-function loadTurnstileScript() {
+function loadRecaptchaScript() {
   const existingScript = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
   if (existingScript) {
     return Promise.resolve();
@@ -32,11 +32,11 @@ function loadTurnstileScript() {
   return new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
     script.id = SCRIPT_ID;
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
     script.async = true;
     script.defer = true;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Unable to load Cloudflare Turnstile."));
+    script.onerror = () => reject(new Error("Unable to load Google reCAPTCHA."));
     document.body.appendChild(script);
   });
 }
@@ -46,7 +46,7 @@ export function CaptchaField({
 }: {
   onValidated: (token: string, isValid: boolean) => void;
 }) {
-  const widgetIdRef = useRef<string | null>(null);
+  const widgetIdRef = useRef<number | null>(null);
   const mountedRef = useRef(true);
   const containerId = useId().replace(/:/g, "");
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
@@ -54,7 +54,7 @@ export function CaptchaField({
   useEffect(() => {
     mountedRef.current = true;
 
-    if (!env.turnstileSiteKey) {
+    if (!env.recaptchaSiteKey) {
       onValidated("", false);
       setStatus("error");
       return () => {
@@ -69,32 +69,38 @@ export function CaptchaField({
       }
     }, 5000);
 
-    loadTurnstileScript()
+    loadRecaptchaScript()
       .then(() => {
-        if (!window.turnstile || !mountedRef.current || widgetIdRef.current !== null) {
+        if (!window.grecaptcha || !mountedRef.current || widgetIdRef.current !== null) {
           return;
         }
 
-        widgetIdRef.current = window.turnstile.render(containerId, {
-          sitekey: env.turnstileSiteKey,
-          theme: document.documentElement.classList.contains("light") ? "light" : "dark",
-          callback: (token) => {
-            setStatus("ready");
-            onValidated(token, Boolean(token));
-          },
-          "expired-callback": () => {
-            setStatus("ready");
-            onValidated("", false);
-          },
-          "error-callback": () => {
-            setStatus("error");
-            onValidated("", false);
-          },
-        });
+        window.grecaptcha.ready(() => {
+          if (!mountedRef.current || !window.grecaptcha || widgetIdRef.current !== null) {
+            return;
+          }
 
-        if (widgetIdRef.current) {
-          setStatus("ready");
-        }
+          widgetIdRef.current = window.grecaptcha.render(containerId, {
+            sitekey: env.recaptchaSiteKey,
+            theme: document.documentElement.classList.contains("light") ? "light" : "dark",
+            callback: (token) => {
+              setStatus("ready");
+              onValidated(token, Boolean(token));
+            },
+            "expired-callback": () => {
+              setStatus("ready");
+              onValidated("", false);
+            },
+            "error-callback": () => {
+              setStatus("error");
+              onValidated("", false);
+            },
+          });
+
+          if (widgetIdRef.current !== null) {
+            setStatus("ready");
+          }
+        });
       })
       .catch(() => {
         setStatus("error");
@@ -104,14 +110,14 @@ export function CaptchaField({
     return () => {
       mountedRef.current = false;
       window.clearTimeout(timeoutId);
-      if (widgetIdRef.current && window.turnstile) {
-        window.turnstile.remove(widgetIdRef.current);
+      if (widgetIdRef.current !== null && window.grecaptcha) {
+        window.grecaptcha.reset(widgetIdRef.current);
       }
       widgetIdRef.current = null;
     };
   }, [containerId, onValidated]);
 
-  if (!env.turnstileSiteKey) {
+  if (!env.recaptchaSiteKey) {
     return (
       <div
         className="flex items-start gap-3 rounded-[1.25rem] border p-4 text-sm"
@@ -122,7 +128,7 @@ export function CaptchaField({
       >
         <AlertCircle className="mt-0.5 h-4 w-4 text-primary" />
         <div className="text-muted-foreground">
-          Add `VITE_TURNSTILE_SITE_KEY` to enable Cloudflare Turnstile for signup.
+          Add `VITE_RECAPTCHA_SITE_KEY` to enable Google reCAPTCHA for signup.
         </div>
       </div>
     );
@@ -136,14 +142,12 @@ export function CaptchaField({
         backgroundColor: "rgba(var(--surface-tint), var(--surface-alpha-soft))",
       }}
     >
-      <div id={containerId} className="min-h-[70px]" />
-      {status === "loading" ? (
-        <p className="mt-3 text-xs text-muted-foreground">Loading verification...</p>
-      ) : null}
+      <div id={containerId} className="min-h-[78px]" />
+      {status === "loading" ? <p className="mt-3 text-xs text-muted-foreground">Loading verification...</p> : null}
       {status === "error" ? (
         <div className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
           <AlertCircle className="mt-0.5 h-3.5 w-3.5 text-primary" />
-          <span>Verification failed to load. Disable blockers, confirm the site key hostname, and refresh the page.</span>
+          <span>Verification failed to load. Check the site key type, hostname, and blockers, then refresh.</span>
         </div>
       ) : null}
     </div>
