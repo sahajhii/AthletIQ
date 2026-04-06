@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --background: 222 28% 8%;
+  --foreground: 210 25% 97%;
+  --card: 222 22% 11%;
+  --card-foreground: 210 25% 97%;
+  --muted: 222 16% 15%;
+  --muted-foreground: 214 15% 78%;
+  --primary: 145 88% 47%;
+  --primary-foreground: 220 31% 7%;
+  --secondary: 221 16% 17%;
+  --secondary-foreground: 210 20% 98%;
+  --accent: 145 88% 47%;
+  --accent-foreground: 220 31% 7%;
+  --destructive: 0 72% 51%;
+  --border: 221 18% 24%;
+  --input: 221 18% 24%;
+  --ring: 145 88% 47%;
+  --radius: 1rem;
+  --surface-tint: 255 255 255;
+  --surface-alpha-soft: 0.04;
+  --surface-alpha: 0.06;
+  --surface-alpha-strong: 0.08;
+  --surface-alpha-panel: 0.07;
+  --surface-border-alpha: 0.1;
+  --surface-border-strong: 0.15;
+}
+
+.light {
+  color-scheme: light;
+  --background: 145 20% 97%;
+  --foreground: 222 40% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 40% 10%;
+  --muted: 145 16% 92%;
+  --muted-foreground: 220 12% 38%;
+  --primary: 150 100% 35%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 145 22% 90%;
+  --secondary-foreground: 222 40% 10%;
+  --accent: 150 100% 35%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --border: 145 12% 84%;
+  --input: 145 12% 84%;
+  --ring: 150 100% 35%;
+  --surface-tint: 0 0 0;
+  --surface-alpha-soft: 0.03;
+  --surface-alpha: 0.05;
+  --surface-alpha-strong: 0.08;
+  --surface-alpha-panel: 0.06;
+  --surface-border-alpha: 0.12;
+  --surface-border-strong: 0.16;
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply min-h-screen bg-background text-foreground antialiased;
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  background-image:
+    radial-gradient(circle at top, rgba(0, 230, 118, 0.12), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 30%);
+}
+
+.light body {
+  background-image:
+    radial-gradient(circle at top, rgba(0, 230, 118, 0.08), transparent 24%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.02), transparent 30%);
+}
+
+a {
+  @apply transition-colors;
+}
+
+#root {
+  @apply min-h-screen;
+}
+
+.glass-panel {
+  @apply border backdrop-blur-xl;
+  background-color: rgba(var(--surface-tint), var(--surface-alpha-panel));
+  border-color: rgba(var(--surface-tint), 0.12);
+}
+
+.section-shell {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.catalog-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.range-slider::-webkit-slider-runnable-track {
+  height: 0;
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  height: 1.25rem;
+  width: 1.25rem;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: #00e676;
+  box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.18);
+  cursor: pointer;
+  margin-top: -0.45rem;
+}
+
+.range-slider::-moz-range-track {
+  height: 0;
+  background: transparent;
+}
+
+.range-slider::-moz-range-thumb {
+  pointer-events: auto;
+  height: 1.25rem;
+  width: 1.25rem;
+  border-radius: 9999px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: #00e676;
+  box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.18);
+  cursor: pointer;
+}
