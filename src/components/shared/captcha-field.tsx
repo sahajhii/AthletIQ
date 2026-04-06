@@ -1,5 +1,5 @@
 import { AlertCircle } from "lucide-react";
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { env } from "@/config/env";
 
 declare global {
@@ -49,16 +49,25 @@ export function CaptchaField({
   const widgetIdRef = useRef<string | null>(null);
   const mountedRef = useRef(true);
   const containerId = useId().replace(/:/g, "");
+  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   useEffect(() => {
     mountedRef.current = true;
 
     if (!env.turnstileSiteKey) {
       onValidated("", false);
+      setStatus("error");
       return () => {
         mountedRef.current = false;
       };
     }
+
+    setStatus("loading");
+    const timeoutId = window.setTimeout(() => {
+      if (mountedRef.current && widgetIdRef.current === null) {
+        setStatus("error");
+      }
+    }, 5000);
 
     loadTurnstileScript()
       .then(() => {
@@ -69,17 +78,32 @@ export function CaptchaField({
         widgetIdRef.current = window.turnstile.render(containerId, {
           sitekey: env.turnstileSiteKey,
           theme: document.documentElement.classList.contains("light") ? "light" : "dark",
-          callback: (token) => onValidated(token, Boolean(token)),
-          "expired-callback": () => onValidated("", false),
-          "error-callback": () => onValidated("", false),
+          callback: (token) => {
+            setStatus("ready");
+            onValidated(token, Boolean(token));
+          },
+          "expired-callback": () => {
+            setStatus("ready");
+            onValidated("", false);
+          },
+          "error-callback": () => {
+            setStatus("error");
+            onValidated("", false);
+          },
         });
+
+        if (widgetIdRef.current) {
+          setStatus("ready");
+        }
       })
       .catch(() => {
+        setStatus("error");
         onValidated("", false);
       });
 
     return () => {
       mountedRef.current = false;
+      window.clearTimeout(timeoutId);
       if (widgetIdRef.current && window.turnstile) {
         window.turnstile.remove(widgetIdRef.current);
       }
@@ -112,7 +136,16 @@ export function CaptchaField({
         backgroundColor: "rgba(var(--surface-tint), var(--surface-alpha-soft))",
       }}
     >
-      <div id={containerId} />
+      <div id={containerId} className="min-h-[70px]" />
+      {status === "loading" ? (
+        <p className="mt-3 text-xs text-muted-foreground">Loading verification...</p>
+      ) : null}
+      {status === "error" ? (
+        <div className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
+          <AlertCircle className="mt-0.5 h-3.5 w-3.5 text-primary" />
+          <span>Verification failed to load. Disable blockers, confirm the site key hostname, and refresh the page.</span>
+        </div>
+      ) : null}
     </div>
   );
 }
