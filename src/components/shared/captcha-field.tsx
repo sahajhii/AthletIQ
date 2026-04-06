@@ -4,26 +4,26 @@ import { env } from "@/config/env";
 
 declare global {
   interface Window {
-    grecaptcha?: {
+    turnstile?: {
       render: (
         container: string | HTMLElement,
-        parameters: {
+        options: {
           sitekey: string;
-          theme?: "light" | "dark";
+          theme?: "light" | "dark" | "auto";
           callback?: (token: string) => void;
           "expired-callback"?: () => void;
           "error-callback"?: () => void;
         },
-      ) => number;
-      reset: (widgetId?: number) => void;
-      ready: (callback: () => void) => void;
+      ) => string;
+      remove: (widgetId: string) => void;
+      reset: (widgetId: string) => void;
     };
   }
 }
 
-const SCRIPT_ID = "google-recaptcha-script";
+const SCRIPT_ID = "cloudflare-turnstile-script";
 
-function loadRecaptchaScript() {
+function loadTurnstileScript() {
   const existingScript = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
   if (existingScript) {
     return Promise.resolve();
@@ -32,11 +32,11 @@ function loadRecaptchaScript() {
   return new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
     script.id = SCRIPT_ID;
-    script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
     script.async = true;
     script.defer = true;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Unable to load Google reCAPTCHA."));
+    script.onerror = () => reject(new Error("Unable to load Cloudflare Turnstile."));
     document.body.appendChild(script);
   });
 }
@@ -46,38 +46,32 @@ export function CaptchaField({
 }: {
   onValidated: (token: string, isValid: boolean) => void;
 }) {
-  const widgetIdRef = useRef<number | null>(null);
+  const widgetIdRef = useRef<string | null>(null);
   const mountedRef = useRef(true);
   const containerId = useId().replace(/:/g, "");
 
   useEffect(() => {
     mountedRef.current = true;
 
-    if (!env.recaptchaSiteKey) {
+    if (!env.turnstileSiteKey) {
       onValidated("", false);
       return () => {
         mountedRef.current = false;
       };
     }
 
-    loadRecaptchaScript()
+    loadTurnstileScript()
       .then(() => {
-        if (!window.grecaptcha || !mountedRef.current || widgetIdRef.current !== null) {
+        if (!window.turnstile || !mountedRef.current || widgetIdRef.current !== null) {
           return;
         }
 
-        window.grecaptcha.ready(() => {
-          if (!mountedRef.current || !window.grecaptcha || widgetIdRef.current !== null) {
-            return;
-          }
-
-          widgetIdRef.current = window.grecaptcha.render(containerId, {
-            sitekey: env.recaptchaSiteKey,
-            theme: document.documentElement.classList.contains("light") ? "light" : "dark",
-            callback: (token) => onValidated(token, Boolean(token)),
-            "expired-callback": () => onValidated("", false),
-            "error-callback": () => onValidated("", false),
-          });
+        widgetIdRef.current = window.turnstile.render(containerId, {
+          sitekey: env.turnstileSiteKey,
+          theme: document.documentElement.classList.contains("light") ? "light" : "dark",
+          callback: (token) => onValidated(token, Boolean(token)),
+          "expired-callback": () => onValidated("", false),
+          "error-callback": () => onValidated("", false),
         });
       })
       .catch(() => {
@@ -86,14 +80,14 @@ export function CaptchaField({
 
     return () => {
       mountedRef.current = false;
-      if (widgetIdRef.current !== null && window.grecaptcha) {
-        window.grecaptcha.reset(widgetIdRef.current);
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current);
       }
       widgetIdRef.current = null;
     };
   }, [containerId, onValidated]);
 
-  if (!env.recaptchaSiteKey) {
+  if (!env.turnstileSiteKey) {
     return (
       <div
         className="flex items-start gap-3 rounded-[1.25rem] border p-4 text-sm"
@@ -104,7 +98,7 @@ export function CaptchaField({
       >
         <AlertCircle className="mt-0.5 h-4 w-4 text-primary" />
         <div className="text-muted-foreground">
-          Add `VITE_RECAPTCHA_SITE_KEY` to enable Google reCAPTCHA for signup.
+          Add `VITE_TURNSTILE_SITE_KEY` to enable Cloudflare Turnstile for signup.
         </div>
       </div>
     );

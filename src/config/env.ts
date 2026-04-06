@@ -3,7 +3,7 @@ export const env = {
   supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? "",
   geminiApiKey: import.meta.env.VITE_GEMINI_API_KEY ?? "",
   razorpayKeyId: import.meta.env.VITE_RAZORPAY_KEY_ID ?? "",
-  recaptchaSiteKey: import.meta.env.VITE_RECAPTCHA_SITE_KEY ?? "",
+  turnstileSiteKey: import.meta.env.VITE_TURNSTILE_SITE_KEY ?? "",
 };
 
 export const appConfig = {
