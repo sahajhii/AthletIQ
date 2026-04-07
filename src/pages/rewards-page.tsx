@@ -14,7 +14,8 @@ export function RewardsPage() {
   const { products = [] } = useProducts();
   const points = profile?.loyalty_points ?? 0;
   const discount = getRedeemableDiscount(points);
-  const completedOrders = orders.filter((order) => order.status === "paid" || order.status === "fulfilled");
+  const deliveredOrders = orders.filter((order) => order.status === "fulfilled");
+  const purchaseCoupon = deliveredOrders[0] ? `ATHLETIQ-${deliveredOrders[0].id.slice(0, 6).toUpperCase()}` : null;
 
   return (
     <section className="section-shell py-16">
@@ -24,7 +25,7 @@ export function RewardsPage() {
         <Card>
           <Trophy className="h-9 w-9 text-primary" />
           <h2 className="mt-5 text-3xl font-semibold">{points} points</h2>
-          <p className="mt-3 text-sm text-muted-foreground">Earn one point for every INR 100 spent on completed orders.</p>
+          <p className="mt-3 text-sm text-muted-foreground">Earn one point for every INR 100 spent on delivered orders.</p>
         </Card>
         <Card>
           <Gift className="h-9 w-9 text-primary" />
@@ -34,15 +35,26 @@ export function RewardsPage() {
           </p>
         </Card>
       </div>
-      {user && rewardProgress && completedOrders.length > 0 ? (
+      {purchaseCoupon ? (
+        <div className="mt-10">
+          <Card>
+            <h3 className="text-2xl font-semibold">Purchase reward coupon</h3>
+            <p className="mt-3 text-sm text-muted-foreground">Your delivered order unlocked a next-purchase coupon code.</p>
+            <div className="mt-5 inline-flex rounded-full border border-primary/30 bg-primary/10 px-5 py-3 text-sm font-semibold tracking-[0.18em] text-primary">
+              {purchaseCoupon}
+            </div>
+          </Card>
+        </div>
+      ) : null}
+      {user && rewardProgress && deliveredOrders.length > 0 ? (
         <div className="mt-10">
           <RewardTracker userId={user.id} progress={rewardProgress} products={products} />
         </div>
       ) : (
         <div className="mt-10">
           <Card>
-            <h3 className="text-2xl font-semibold">Rewards start after your first completed order</h3>
-            <p className="mt-3 text-sm text-muted-foreground">Complete an order to unlock the daily usage streak tracker.</p>
+            <h3 className="text-2xl font-semibold">Rewards start after your first delivered order</h3>
+            <p className="mt-3 text-sm text-muted-foreground">Get an order delivered to unlock the daily usage streak tracker and purchase coupon.</p>
           </Card>
         </div>
       )}

@@ -19,6 +19,7 @@ export function OrderHistory({ orders }: { orders: Order[] }) {
         const shippingQuote = getShippingQuote(order.shipping_address, order.subtotal);
         const trackingSteps = getOrderTrackingSteps(order.created_at, order.status);
         const isExpanded = expandedOrderId === order.id;
+        const canTrack = order.status === "fulfilled";
 
         return (
           <Card key={order.id}>
@@ -37,14 +38,19 @@ export function OrderHistory({ orders }: { orders: Order[] }) {
             <div className="mt-5 flex flex-wrap gap-3">
               <button
                 type="button"
-                onClick={() => setExpandedOrderId((current) => (current === order.id ? null : order.id))}
-                className="rounded-full border border-primary/30 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition hover:bg-primary/15"
+                onClick={() => (canTrack ? setExpandedOrderId((current) => (current === order.id ? null : order.id)) : undefined)}
+                disabled={!canTrack}
+                className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                  canTrack
+                    ? "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15"
+                    : "cursor-not-allowed border-white/10 bg-transparent text-muted-foreground"
+                }`}
               >
-                {isExpanded ? "Hide tracking" : "Track order"}
+                {canTrack ? (isExpanded ? "Hide tracking" : "Track order") : "Tracking available after delivery"}
               </button>
             </div>
 
-            {isExpanded ? (
+            {isExpanded && canTrack ? (
               <div className="mt-6 space-y-5">
                 <div className="grid gap-4 md:grid-cols-3">
                   <div className="rounded-2xl border border-white/10 p-4">

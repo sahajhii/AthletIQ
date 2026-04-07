@@ -23,7 +23,8 @@ export function AccountPage() {
   const { products = [] } = useProducts();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = tabs.includes(searchParams.get("tab") as never) ? (searchParams.get("tab") as (typeof tabs)[number]) : "profile";
-  const completedOrders = orders.filter((order) => order.status === "paid" || order.status === "fulfilled");
+  const deliveredOrders = orders.filter((order) => order.status === "fulfilled");
+  const purchaseCoupon = deliveredOrders[0] ? `ATHLETIQ-${deliveredOrders[0].id.slice(0, 6).toUpperCase()}` : null;
 
   return (
     <section className="section-shell py-16">
@@ -58,15 +59,25 @@ export function AccountPage() {
             <Card>
               <h3 className="text-2xl font-semibold">Loyalty points</h3>
               <p className="mt-3 text-4xl font-bold text-primary">{profile?.loyalty_points ?? 0}</p>
-              <p className="mt-2 text-sm text-muted-foreground">Earn points on completed orders and redeem them at checkout.</p>
+              <p className="mt-2 text-sm text-muted-foreground">Earn points on delivered orders and redeem them at checkout.</p>
             </Card>
-            {user && rewardProgress && completedOrders.length > 0 ? (
+            {purchaseCoupon ? (
+              <Card>
+                <h3 className="text-2xl font-semibold">Purchase reward coupon</h3>
+                <p className="mt-3 text-sm text-muted-foreground">Unlocked after your delivered order. Use this on your next purchase.</p>
+                <div className="mt-5 inline-flex rounded-full border border-primary/30 bg-primary/10 px-5 py-3 text-sm font-semibold tracking-[0.18em] text-primary">
+                  {purchaseCoupon}
+                </div>
+                <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">Suggested reward: flat ₹150 off your next order above ₹999</p>
+              </Card>
+            ) : null}
+            {user && rewardProgress && deliveredOrders.length > 0 ? (
               <RewardTracker userId={user.id} progress={rewardProgress} products={products} />
             ) : (
               <Card>
-                <h3 className="text-2xl font-semibold">Rewards unlock after your first completed order</h3>
+                <h3 className="text-2xl font-semibold">Rewards unlock after your first delivered order</h3>
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Place and complete an order to start logging daily usage and building streak rewards.
+                  Once an order is delivered, you can track usage, build streak rewards, and unlock purchase coupons.
                 </p>
               </Card>
             )}
