@@ -50,6 +50,17 @@ export function AccountPage() {
         ))}
       </div>
 
+      {purchaseCoupon ? (
+        <Card className="mt-10">
+          <h3 className="text-2xl font-semibold">Purchase reward coupon</h3>
+          <p className="mt-3 text-sm text-muted-foreground">Available in your account after your delivered purchase. Use it on your next order.</p>
+          <div className="mt-5 inline-flex rounded-full border border-primary/30 bg-primary/10 px-5 py-3 text-sm font-semibold tracking-[0.18em] text-primary">
+            {purchaseCoupon}
+          </div>
+          <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">Suggested reward: flat ₹150 off your next order above ₹999</p>
+        </Card>
+      ) : null}
+
       <div className="mt-10">
         {tab === "profile" && profile ? <ProfilePanel profile={profile} /> : null}
         {tab === "orders" ? <OrderHistory orders={orders} /> : null}
@@ -61,16 +72,6 @@ export function AccountPage() {
               <p className="mt-3 text-4xl font-bold text-primary">{profile?.loyalty_points ?? 0}</p>
               <p className="mt-2 text-sm text-muted-foreground">Earn points on delivered orders and redeem them at checkout.</p>
             </Card>
-            {purchaseCoupon ? (
-              <Card>
-                <h3 className="text-2xl font-semibold">Purchase reward coupon</h3>
-                <p className="mt-3 text-sm text-muted-foreground">Unlocked after your delivered order. Use this on your next purchase.</p>
-                <div className="mt-5 inline-flex rounded-full border border-primary/30 bg-primary/10 px-5 py-3 text-sm font-semibold tracking-[0.18em] text-primary">
-                  {purchaseCoupon}
-                </div>
-                <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">Suggested reward: flat ₹150 off your next order above ₹999</p>
-              </Card>
-            ) : null}
             {user && rewardProgress && deliveredOrders.length > 0 ? (
               <RewardTracker userId={user.id} progress={rewardProgress} products={products} />
             ) : (
