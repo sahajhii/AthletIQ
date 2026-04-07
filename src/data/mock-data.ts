@@ -29,6 +29,21 @@ export const categories: Category[] = [
 
 export const products: Product[] = [
   {
+    id: "prod-test-1",
+    name: "AthletIQ Demo Test Product",
+    slug: "athletiq-demo-test-product",
+    description: "A ₹1 demo product for testing checkout, payment, and order flows safely during presentations.",
+    image_url: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=900&q=80",
+    price: 1,
+    compare_at_price: 99,
+    category_id: "cat-accessories",
+    goal_tags: ["beginner", "home-workout"],
+    stock: 999,
+    rating: 5,
+    featured: true,
+    tags: ["demo", "test", "checkout"],
+  },
+  {
     id: "prod-whey",
     name: "IsoFlex Whey Protein",
     slug: "isoflex-whey-protein",
