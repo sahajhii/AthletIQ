@@ -102,6 +102,8 @@ export interface Order {
   user_id: string;
   status: OrderStatus;
   shipping_address?: string | null;
+  delivery_distance_km?: number | null;
+  delivery_zone?: string | null;
   subtotal: number;
   taxes: number;
   platform_fee: number;
@@ -201,6 +203,9 @@ export interface CheckoutAmounts {
   taxes: number;
   platformFee: number;
   deliveryFee: number;
+  deliveryDistanceKm: number;
+  deliveryZone: string;
+  deliveryEta: string;
   discount: number;
   total: number;
 }

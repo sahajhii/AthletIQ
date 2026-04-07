@@ -92,6 +92,8 @@ create table if not exists public.orders (
   user_id uuid not null references public.profiles(id) on delete cascade,
   status public.order_status not null default 'pending',
   shipping_address text,
+  delivery_distance_km integer,
+  delivery_zone text,
   subtotal numeric(10,2) not null default 0,
   taxes numeric(10,2) not null default 0,
   platform_fee numeric(10,2) not null default 0,
@@ -177,6 +179,8 @@ alter table public.orders add column if not exists taxes numeric(10,2) not null 
 alter table public.orders add column if not exists platform_fee numeric(10,2) not null default 0;
 alter table public.orders add column if not exists delivery_fee numeric(10,2) not null default 0;
 alter table public.orders add column if not exists shipping_address text;
+alter table public.orders add column if not exists delivery_distance_km integer;
+alter table public.orders add column if not exists delivery_zone text;
 alter table public.orders add column if not exists currency text not null default 'INR';
 alter table public.orders add column if not exists payment_provider text;
 alter table public.orders add column if not exists payment_id text;

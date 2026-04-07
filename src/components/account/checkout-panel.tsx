@@ -35,9 +35,9 @@ export function CheckoutPanel({ userId, profile }: { userId: string; profile: Pr
   const [saveAddress, setSaveAddress] = useState(true);
 
   const loyaltyDiscount = redeemPoints && profile ? getRedeemableDiscount(profile.loyalty_points) : 0;
-  const amounts = useMemo(() => getCheckoutAmounts(items, loyaltyDiscount), [items, loyaltyDiscount]);
-  const frequentlyBoughtTogether = useMemo(() => getFrequentlyBoughtTogether(items, products), [items, products]);
   const selectedAddress = addressMode === "saved" ? profile?.address?.trim() ?? "" : newAddress.trim();
+  const amounts = useMemo(() => getCheckoutAmounts(items, loyaltyDiscount, selectedAddress), [items, loyaltyDiscount, selectedAddress]);
+  const frequentlyBoughtTogether = useMemo(() => getFrequentlyBoughtTogether(items, products), [items, products]);
 
   useEffect(() => {
     setAddressMode(profile?.address ? "saved" : "new");
@@ -212,6 +212,15 @@ export function CheckoutPanel({ userId, profile }: { userId: string; profile: Pr
               </label>
             </div>
           )}
+        </div>
+        <div className="mt-4 rounded-[1.25rem] border border-primary/20 bg-primary/[0.08] px-4 py-3 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-foreground">Shipping from Mira Road hub</span>
+            <span className="font-medium text-primary">
+              {amounts.deliveryDistanceKm} km • {amounts.deliveryZone}
+            </span>
+          </div>
+          <p className="mt-2 text-muted-foreground">Estimated delivery window: {amounts.deliveryEta}</p>
         </div>
       </div>
       <div className="mt-6 space-y-2 text-sm">

@@ -140,7 +140,7 @@ export async function createOrder(args: {
   paymentProvider?: "razorpay" | "cod";
 }) {
   const discountTotal = args.loyaltyPointsRedeemed ? Math.min(999999, args.loyaltyPointsRedeemed / 10) : 0;
-  const amounts = getCheckoutAmounts(args.items, discountTotal);
+  const amounts = getCheckoutAmounts(args.items, discountTotal, args.shippingAddress);
   const total = amounts.total;
   const loyaltyPointsEarned = calculateLoyaltyPoints(total);
 
@@ -149,6 +149,8 @@ export async function createOrder(args: {
     .insert({
       user_id: args.userId,
       shipping_address: args.shippingAddress?.trim() || null,
+      delivery_distance_km: amounts.deliveryDistanceKm,
+      delivery_zone: amounts.deliveryZone,
       subtotal: amounts.subtotal,
       taxes: amounts.taxes,
       platform_fee: amounts.platformFee,
